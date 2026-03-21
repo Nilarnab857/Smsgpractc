@@ -4,7 +4,7 @@
 * Bipatite Graph
 * Detect and Print Cycle in Graph (1)
 * Burst Balloon(1)
-* Endoscopy
+* Endoscopy(1)
 * Mr Lee
 * Mr Kim
 * Research Team / Rare Elements
