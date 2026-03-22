@@ -5,7 +5,7 @@
 * Detect and Print Cycle in Graph (1)
 * Burst Balloon(1)
 * Endoscopy(1)
-* Mr Lee
+* Mr Lee(1)
 * Mr Kim
 * Research Team / Rare Elements
 * Spaceship / Bomb Explosion
