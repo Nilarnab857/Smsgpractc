@@ -174,3 +174,89 @@ int main()
     return 0;
 }
 */
+
+
+/*Bit dp soln*/
+/*#include <iostream>
+#include <vector>
+#include <climits>
+#include <cmath> // For std::abs
+using namespace std;
+
+int n, sx, sy, tx, ty;
+int x[20], y[20];
+
+// Manhattan distance function
+int dist(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) + abs(y1 - y2);
+}
+
+// dp[mask][last] stores the min distance to visit remaining unvisited customers
+// and return home, given we are currently at customer index 'last'.
+int help(vector<vector<int>> &dp, int mask, int last) {
+    // BASE CASE: If the mask has 'n' set bits, all customers are visited.
+    // (1 << n) - 1 creates a binary number with 'n' ones (e.g., n=5 -> 11111 -> 31)
+    if (mask == (1 << n) - 1) {
+        // Return the distance from the last visited customer to the Home (tx, ty)
+        return dist(x[last], y[last], tx, ty);
+    }
+    
+    // MEMOIZATION: Return already computed subproblems
+    if (dp[mask][last] != -1) {
+        return dp[mask][last];
+    }
+    
+    int ans = INT_MAX;
+    
+    // Try visiting every customer 'i'
+    for (int i = 0; i < n; i++) {
+        // Check if the i-th bit in mask is 0 (meaning customer 'i' is unvisited)
+        if ((mask & (1 << i)) == 0) {
+            
+            // Mark customer 'i' as visited by using bitwise OR: (mask | (1 << i))
+            int current_cost = dist(x[last], y[last], x[i], y[i]);
+            int future_cost = help(dp, mask | (1 << i), i);
+            
+            ans = min(ans, current_cost + future_cost);
+        }
+    }
+    
+    // Save the result in our DP table and return
+    return dp[mask][last] = ans;
+}
+
+void solve(int tc) {
+    cin >> n;
+    cin >> sx >> sy >> tx >> ty;
+    for (int i = 0; i < n; i++) {
+        cin >> x[i] >> y[i];
+    }
+    
+    // Initialize DP table with -1. 
+    // Rows = 2^n (all possible visited combinations), Cols = n (last visited node)
+    vector<vector<int>> dp((1 << n), vector<int>(n, -1));
+    
+    int final_ans = INT_MAX;
+    
+    // We start at the Office (sx, sy). We must pick a customer 'i' as our FIRST stop.
+    for (int i = 0; i < n; i++) {
+        // Cost = Distance from Office to Customer 'i' + cost of visiting the rest
+        // Initial mask is (1 << i) because only the i-th customer is visited.
+        int cost = dist(sx, sy, x[i], y[i]) + help(dp, (1 << i), i);
+        final_ans = min(final_ans, cost);
+    }
+    
+    // Output formatted as required by the Samsung platform
+    cout << "#" << tc << " " << final_ans << "\n";
+}
+
+int main() {
+    int tt;
+    // Assuming your environment passes the number of test cases first
+    if (cin >> tt) {
+        for (int i = 1; i <= tt; i++) {
+            solve(i);
+        }
+    }
+    return 0;
+}*/
