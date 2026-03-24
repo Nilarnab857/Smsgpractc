@@ -8,7 +8,7 @@
 * Mr Lee(1)
 * Mr Kim(1)
 * Research Team / Rare Elements(1)
-* Spaceship / Bomb Explosion
+* Spaceship / Bomb Explosion(1) good prob
 * Wormhole
 * Omnious Number
 
