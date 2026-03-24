@@ -56,6 +56,91 @@ In the grid above,
 
    Now, we can use the bomb to get out of this situation. After this, we can collect at most 1 coin. So maximum coins=5.
 */
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+int a[1000][5];
+
+// Direction array needs brackets []
+int dc[] = {-1, 0, 1}; 
+
+int help(int i, int j, int state, vector<vector<vector<int>>> &dp) {
+    // Base case: If we've passed the top of the grid, the game ends
+    if (i == 0) {
+        return 0; 
+    }
+    
+    // Return memoized result if calculated
+    if (dp[i][j][state] != -1) return dp[i][j][state];
+    
+    int ans = 0; 
+    
+    for (int ct = 0; ct < 3; ct++) {
+        int nj = j + dc[ct];
+        int ni = i - 1;
+        
+        // Simplified boundary check (no need for a separate valid() function here if we just check bounds directly)
+        if (nj >= 0 && nj < 5 && ni >= 0) {
+            
+            // Do we get a point on this step?
+            int points = (a[ni][nj] == 1) ? 1 : 0;
+            
+            // --- OPTION 1: Normal Move (Bomb is available '6' or expired '0') ---
+            if (state == 6 || state == 0) {
+                if (a[ni][nj] == 2) {
+                    // Hit an enemy while vulnerable. We get 0 points for this path.
+                    ans = max(ans, 0); 
+                } else {
+                    // Safe cell (0 or 1), keep moving normally
+                    ans = max(ans, points + help(ni, nj, state, dp));
+                }
+            } 
+            // --- OPTION 2: Bomb Shield is Active (States 1 to 5) ---
+            else {
+                // Enemies (2) are ignored. State drops by 1.
+                ans = max(ans, points + help(ni, nj, state - 1, dp));
+            }
+            
+            // --- OPTION 3: Drop the Bomb RIGHT NOW ---
+            // We can test this alternate timeline simultaneously if we haven't used the bomb yet
+            if (state == 6) {
+                // We instantly survive the step, and pass '4' to shield the next 4 rows
+                ans = max(ans, points + help(ni, nj, 4, dp));
+            }
+        }
+    }
+    
+    return dp[i][j][state] = ans;
+}
+
+int main() {
+    int tt;
+    cin >> tt;
+    int tNo = 0;
+    
+    while (tt--) {
+        cin >> n; // Read into the global 'n', not 'row'
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < 5; j++) {
+                cin >> a[i][j];
+            }
+        }
+        
+        // Initialize 3D DP table: Dimensions [n+1][5][7]
+        vector<vector<vector<int>>> dp(n + 1, vector<vector<int>>(5, vector<int>(7, -1)));
+        
+        tNo++;
+        
+        // Start at row 'n' (bottom), column '2' (center), state '6' (bomb ready)
+        int final_answer = help(n, 2, 6, dp);
+        
+        cout << "#" << tNo << " : " << final_answer << "\n";
+    }
+    return 0;
+}
+/*
 #include<bits/stdc++.h>
 using namespace std;
 void updateMatrix(int row,char ** matrix){
