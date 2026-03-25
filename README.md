@@ -9,7 +9,7 @@
 * Mr Kim(1)
 * Research Team / Rare Elements(1)
 * Spaceship / Bomb Explosion(1) good prob
-* Wormhole
+* Wormhole(1)
 * Omnious Number
 
 Rest problems are also asked in various Samsung India 3-hour Coding Test.
