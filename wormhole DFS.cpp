@@ -16,64 +16,113 @@ value is represents cost to pass through this warmhole. Now these warmholes are 
 the to go from (x1,y1) to (x2,y2) is abs(x1-x2)+abs(y1-y2). The main problem here is to find minimum 
 distance to reach spaceship from source to destination co-ordinate using any number of warm-hole. 
 It is ok if you wont use any warmhole.
-*/
-#include <iostream>
-#include <climits>
+*/#include <iostream>
+#include <vector>
+#include <cmath>
+#include <queue>
+
 using namespace std;
 
-int ANS = INT_MAX, n, temp = 0;
-int w[35][5];
-int mask[35];
+// A simple structure to hold coordinates
+struct Point {
+    int x, y;
+};
 
-int abs(int i){
-    return (i>=0) ? i : -1*i;
-}
-
-int min(int x, int y){
-    return (x>=y) ? y : x;
-}
-
-int dist(int sX, int sY, int tX, int tY){
-    return abs(sX-tX) + abs(sY-tY);
-}
-
-void wormhole(int sX, int sY, int tX, int tY, int value){
-    ANS = min(ANS, dist(sX, sY, tX, tY) + value);
-
-    for(int i=0; i<n; i++){
-        if(mask[i] == 0){
-            mask[i] = 1;
-
-            /* Choose lower end of wormhole */
-            temp = dist(sX, sY, w[i][0], w[i][1]) + w[i][4] + value;
-            wormhole(w[i][2], w[i][3], tX, tY, temp);
-
-            /* Choose upper end of wormhole */
-            temp = dist(sX, sY, w[i][2], w[i][3]) + w[i][4] + value;
-            wormhole(w[i][0], w[i][1], tX, tY, temp);
-
-            mask[i] = 0;
-        }
-    }
+// Helper to calculate Manhattan distance
+int getManhattan(Point p1, Point p2) {
+    return abs(p1.x - p2.x) + abs(p1.y - p2.y);
 }
 
 int main() {
-    int t, sX, sY, tX, tY;
-    cin >> t;
-    while(t--){
-    	ANS = INT_MAX;
+    int t;
+    if (!(cin >> t)) return 0;
+    
+    int tNo = 0;
+    while (t--) {
+        int n;
         cin >> n;
-        cin >> sX >> sY >> tX >> tY;
-        for(int i=0; i<n; i++){
-            mask[i] = 0;
-            for(int j=0; j<5; j++){
-                cin >> w[i][j];
+        
+        Point src, dst;
+        cin >> src.x >> src.y >> dst.x >> dst.y;
+        
+        // 1. COLLECT ALL NODES
+        vector<Point> nodes;
+        nodes.push_back(src); // Node 0 is Source
+        
+        vector<int> wormholeCosts(n);
+        for (int i = 0; i < n; i++) {
+            Point p1, p2;
+            int cost;
+            cin >> p1.x >> p1.y >> p2.x >> p2.y >> cost;
+            
+            nodes.push_back(p1); // Node 2i + 1
+            nodes.push_back(p2); // Node 2i + 2
+            wormholeCosts[i] = cost;
+        }
+        
+        nodes.push_back(dst); // Node 2N + 1 is Destination
+        
+        int V = nodes.size();
+        
+        // 2. CONSTRUCT THE GRAPH (Adjacency List)
+        // pair<target_node, edge_weight>
+        vector<vector<pair<int, int>>> adj(V);
+        
+        // Add walking edges between ALL pairs of nodes
+        for (int i = 0; i < V; i++) {
+            for (int j = i + 1; j < V; j++) {
+                int dist = getManhattan(nodes[i], nodes[j]);
+                adj[i].push_back({j, dist});
+                adj[j].push_back({i, dist}); // Graph is undirected
             }
         }
-
-        wormhole(sX, sY, tX, tY, 0);
-        cout << ANS << endl;
+        
+        // Add the special Wormhole edges
+        for (int i = 0; i < n; i++) {
+            int u = 2 * i + 1; // End 1 of wormhole i
+            int v = 2 * i + 2; // End 2 of wormhole i
+            int cost = wormholeCosts[i];
+            
+            // We add the shortcut edge. Dijkstra will automatically prefer this 
+            // over the walking edge if 'cost' is smaller.
+            adj[u].push_back({v, cost});
+            adj[v].push_back({u, cost});
+        }
+        
+        // 3. APPLY DIJKSTRA'S ALGORITHM
+        vector<int> min_dist(V, 1e9); // Initialize distances to "infinity"
+        min_dist[0] = 0; // Distance to Source is 0
+        
+        // Min-Heap priority queue: stores {current_distance, node_index}
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        pq.push({0, 0});
+        
+        while (!pq.empty()) {
+            int d = pq.top().first;
+            int u = pq.top().second;
+            pq.pop();
+            
+            // Optimization: Ignore stale pairs in the priority queue
+            if (d > min_dist[u]) continue;
+            
+            // Check all neighbors
+            for (auto& edge : adj[u]) {
+                int v = edge.first;
+                int weight = edge.second;
+                
+                // Relaxation step
+                if (min_dist[u] + weight < min_dist[v]) {
+                    min_dist[v] = min_dist[u] + weight;
+                    pq.push({min_dist[v], v});
+                }
+            }
+        }
+        
+        tNo++;
+        // The answer is the shortest distance to the Destination node
+        cout << "#" << tNo << " : " << min_dist[V - 1] << "\n";
     }
+    
     return 0;
 }
 
