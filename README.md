@@ -10,7 +10,7 @@
 * Research Team / Rare Elements(1)
 * Spaceship / Bomb Explosion(1) good prob
 * Wormhole(1)
-* Omnious Number
+* Omnious Number(1) digit dp question see properly 
 
 Rest problems are also asked in various Samsung India 3-hour Coding Test.
 
