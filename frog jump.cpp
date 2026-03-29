@@ -9,76 +9,103 @@ with cost as the number of jumps taken.
 Given a source and destination, the frog has to reach the destination minimizing the cost (jump).
 */
 
-#include <iostream>
+// 01 dijkstra optimisation of dijkstra using deque
+#include <bits/stdc++.h>
 using namespace std;
-#define QS 1000005
 
-struct Point{
-	int x, y;
-};
+// Adjusted to 105 to prevent Memory Limit Exceeded (MLE)
+const int maxN = 105; 
 
-int n, sX, sY, tX, tY; 
-int mat[105][105], dis[105][105], vis[105][105];
+int n, sx, sy, tx, ty;
+int arr[maxN][maxN];
+int dist[maxN][maxN];
 
-Point queue[QS];
-int front = 0, rear = 0;
+// Indices: 0=Up, 1=Right, 2=Down, 3=Left
+int dr[4] = {-1, 0, 1, 0};
+int dc[4] = {0, 1, 0, -1};
 
-int dirX[] = {1,0,-1,0};
-int dirY[] = {0,1,0,-1};
-
-bool isValid(int i, int j){
-	return (i>=0 && i<n && j>=0 && j<n);
+bool isValid(int r, int c) {
+    return (r >= 0 && r < n && c >= 0 && c < n);
 }
 
-void calculateFrogJump(){
-	queue[rear].x = sX;
-	queue[rear].y = sY;
-	rear = (rear + 1) % QS;
+void dijstra01() {
+    // 1. Initialize all distances to infinity
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            dist[i][j] = INT_MAX;
+        }
+    }
 
-	vis[sX][sY] = 1;
-	dis[sX][sY] = 0;
+    // 2. Setup the Deque
+    deque<pair<int, int>> dq;
+    dq.push_front({sx, sy});
+    dist[sx][sy] = 0;
 
-	while(front != rear){
-		int p = queue[front].x;
-		int q = queue[front].y;
-		front = (front + 1) % QS;
+    // 3. Main 0-1 BFS Loop
+    while (!dq.empty()) {
+        auto it = dq.front();
+        dq.pop_front();
+        
+        int r = it.first;
+        int c = it.second;
 
-		for(int i=0; i<4; i++){
-			int newX = p + dirX[i];
-			int newY = q + dirY[i];
+        // Early exit: If we reached the target, we can stop exploring
+        if (r == tx && c == ty) break;
 
-			if(isValid(newX, newY) && mat[newX][newY] == 1 && vis[newX][newY] == 0){
-				/* Horizontal Cost */
-				if(i == 0 || i == 2){
-					dis[newX][newY] = dis[p][q];
- 				}
-				else if(i == 1 || i == 3){
-					dis[newX][newY] = 1 + dis[p][q];
-				}
+        // Explore all 4 directions
+        for (int i = 0; i < 4; i++) {
+            int nr = r + dr[i];
+            int nc = c + dc[i];
 
-				vis[newX][newY] = 1;
+            // Check if within bounds AND is a valid lily pad (1)
+            if (isValid(nr, nc) && arr[nr][nc] == 1) {
+                
+                // Determine cost: 
+                // i = 0 (Up) and i = 2 (Down) cost 1 jump.
+                // i = 1 (Right) and i = 3 (Left) cost 0 jumps.
+                int jumpCost = (i == 0 || i == 2) ? 1 : 0;
 
-				queue[rear].x = newX;
-				queue[rear].y = newY;
-				rear = (rear + 1) % QS;	
-			}
-		}
-	}
-	cout << dis[tX][tY];
+                // Relaxation Step: If we found a cheaper way to this cell
+                if (dist[r][c] + jumpCost < dist[nr][nc]) {
+                    dist[nr][nc] = dist[r][c] + jumpCost;
+                    
+                    // 0-1 BFS Magic:
+                    if (jumpCost == 0) {
+                        dq.push_front({nr, nc}); // Free horizontal move -> Front
+                    } else {
+                        dq.push_back({nr, nc});  // Costly vertical move -> Back
+                    }
+                }
+            }
+        }
+    }
+    
+    // Output the minimum jumps required
+    cout << dist[tx][ty] << "\n";
 }
 
-int main(){
-	cin >> n;
-	for(int i=0; i<n; i++){
-		for(int j=0; j<n; j++){
-			cin >> mat[i][j];
-			vis[i][j] = 0;
-			dis[i][j] = 0;
-		}
-	}
+void solve() {
+    cin >> n >> sx >> sy >> tx >> ty;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cin >> arr[i][j];
+        }
+    }
+    
+    // Call the function
+    dijstra01();
+}
 
-	cin >> sX >> sY >> tX >> tY;
-
-	calculateFrogJump();
-	return 0;
-} 
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int tt;
+    if (cin >> tt) {
+        while (tt--) {
+            solve();
+        }
+    }
+    return 0;
+}
