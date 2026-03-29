@@ -18,6 +18,29 @@ Let say two pots are there with overflow no.s {5,58}, and crow has to overflow o
 So crow will put 5 stones in pot with overflow no.(58), it will not overflow, then he will put in 
 pot with overflow no.(5), hence the total no. of stones to make overflow one pot is=10.
 */
+Greedy solution works:::
+int minCrowPotStoneSecond(int *overflow_numbers){
+    int total_stones=0;
+	//n*O0 + (n-1)*(O1-O0) + n-2*(O2-O1) . . . 
+    // LOOP 1: Calculate the "Differences"
+    // It transforms {2, 5, 10} into {2, 3, 5}
+    for(int i=n-1; i>0; i--){
+        overflow_numbers[i] = max(0, overflow_numbers[i] - overflow_numbers[i-1]);
+    }
+
+    // LOOP 2: Multiply by the remaining pots
+    for(int i=0; i<k; i++){
+        // remaining pots = (n - i)
+        total_stones += (overflow_numbers[i] * (n-i)); 
+    }
+    
+    return total_stones;
+}
+
+
+
+
+
 #include<iostream>
 #include<algorithm>
 using namespace std;
