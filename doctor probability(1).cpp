@@ -23,6 +23,77 @@ time is not considered and during that 10min at 10th min he will be in next divi
 3 0.700000
 */
 
+
+#include <iostream>
+#include <vector>
+#include <iomanip>
+
+using namespace std;
+
+void solve() {
+    int n, E, endtime;
+    cin >> n >> E >> endtime;
+    
+    // Fixed the missing semicolon and renamed for clarity
+    int steps = endtime / 10; 
+    
+    // Graph using 0-based indexing
+    vector<vector<pair<int, double>>> adj(n);
+    for(int i = 0; i < E; i++) {
+        int u, v;
+        double P;
+        cin >> u >> v >> P;
+        adj[u-1].push_back({v-1, P}); 
+    }
+    
+    // dp[t][u] stores the probability of being at node 'u' at time step 't'
+    vector<vector<double>> dp(steps + 1, vector<double>(n, 0.0));
+    dp[0][0] = 1.0; // Starts at Node 1 (which is index 0)
+    
+    // DP Transitions
+    for(int t = 0; t < steps; t++) {
+        for(int u = 0; u < n; u++) {
+            // Optimization: Only process if there's a > 0 chance of being here
+            if (dp[t][u] > 0.0) { 
+                for(auto it : adj[u]) {
+                    int v = it.first;
+                    double P = it.second;
+                    // Push probability forward to the next step
+                    dp[t+1][v] += (dp[t][u] * P);
+                }
+            }
+        }
+    }
+    
+    // Find the max probability in the final step
+    double max_prob = 0.0;
+    int best_node = 0;
+    
+    for(int u = 0; u < n; u++) {
+        if(dp[steps][u] > max_prob) {
+            max_prob = dp[steps][u];
+            best_node = u;
+        }
+    }
+    
+    // Output: Convert 0-indexed node back to 1-indexed for the answer
+    cout << (best_node + 1) << " " << fixed << setprecision(6) << max_prob << "\n";
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int t;
+    if (cin >> t) {
+        while (t--) {
+            solve();
+        }
+    }
+    return 0;
+}
+
 #include<iostream>
 using namespace std;
 
