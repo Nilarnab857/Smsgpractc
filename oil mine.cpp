@@ -23,129 +23,97 @@ output
 5 
 1
 */
-
 #include <iostream>
+#include <vector>
 #include <climits>
+#include <algorithm>
+
 using namespace std;
 
-int companies, mines, ANS;
+int best_answer;
 
-int MIN(int x, int y){
-    return (x>=y) ? y : x;
-}
-
-int MAX(int x, int y){
-    return (x>=y) ? x : y;
-}
-
-void calculateOilMines(int i, int *oilMines, bool *visited, int minV, int maxV, int sum,
-                        int nodes, int &ANS){
-    // Base Case
-    if(visited[i]){
-        int newMin = MIN(sum, minV);
-        int newMax = MAX(sum, maxV);
-
-        if(nodes == companies - 1){
-            ANS = min(ANS, newMax - newMin);
-        }
+// pre: prefix sum array
+// cur: the index we are starting the current chunk from
+// formed: number of companies we have assigned chunks to so far
+// curmax / curmin: tracking the highest/lowest sums in this specific timeline
+// end_limit: the absolute last index we can use (since we start from different points in the circle)
+// n: total companies needed
+void f(const vector<int>& pre, int cur, int formed, int curmax, int curmin, int end_limit, int n) {
+    // OPTIMIZED BASE CASE: 
+    // If we only have 1 company left to form (meaning formed == n - 1), 
+    // they MUST take whatever mines are left over. We don't need a loop for this.
+    if (formed == n - 1) {
+        // Calculate the sum of all remaining mines up to the end_limit
+        int last_chunk_sum = pre[end_limit] - pre[cur - 1];
+        
+        int final_max = max(curmax, last_chunk_sum);
+        int final_min = min(curmin, last_chunk_sum);
+        
+        // Update global answer
+        best_answer = min(best_answer, final_max - final_min);
         return;
     }
 
-    // Main Case
-    visited[i] = 1;
-    int j = (i + 1) % mines;
+    // "Save some for later" limit
+    int remaining_companies = n - formed;
+    // We must leave at least 1 mine for each company that comes after us
+    int limit = end_limit - (remaining_companies - 1); 
 
-    calculateOilMines(j, oilMines, visited, minV, maxV, sum + oilMines[i], nodes, ANS);
+    for (int i = cur; i <= limit; i++) {
+        // O(1) sum calculation using prefix sums
+        int chunk_sum = pre[i] - pre[cur - 1];
+        
+        int next_max = max(curmax, chunk_sum);
+        int next_min = min(curmin, chunk_sum);
+        
+        // Recurse for the next company, starting from index i + 1
+        f(pre, i + 1, formed + 1, next_max, next_min, end_limit, n);
+    }
+}
 
-    int newMin = MIN(sum, minV);
-    int newMax = MAX(sum, maxV);
+void solve() {
+    int n, m;
+    if (!(cin >> n >> m)) return;
 
-    calculateOilMines(j, oilMines, visited, newMin, newMax, oilMines[i], nodes + 1, ANS);
+    // Use 1-based indexing, size is 2 * m + 1 to hold the unrolled array
+    vector<int> a(2 * m + 1, 0);
+    vector<int> pre(2 * m + 1, 0);
 
-    visited[i] = 0;
-    return;
+    for (int i = 1; i <= m; i++) {
+        cin >> a[i];
+        a[i + m] = a[i]; // Unroll the circle: duplicate the array
+    }
+
+    // Build the prefix sum array
+    for (int i = 1; i <= 2 * m; i++) {
+        pre[i] = pre[i - 1] + a[i];
+    }
+
+    // Reset best_answer for each testcase
+    best_answer = INT_MAX;
+
+    // Try every valid linear starting point in the circle
+    // A valid sequence is always exactly 'm' mines long
+    for (int start = 1; start <= m; start++) {
+        int end_limit = start + m - 1; // The final index for this specific start point
+        
+        // Start recursion: formed = 0, initial max = incredibly small, initial min = incredibly large
+        f(pre, start, 0, INT_MIN, INT_MAX, end_limit, n);
+    }
+
+    cout << best_answer << "\n";
 }
 
 int main() {
-	// your code goes here
-	int t;
-	cin >> t;
-	while(t--){
-		cin >> companies >> mines;
-		int  *oilMines = new int[mines + 1];
-		bool *visited  = new bool[mines + 1];
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
 
-		for(int i=0; i<mines; i++){
-            cin >> oilMines[i];
-            visited[i] = 0;
+    int tt;
+    if (cin >> tt) {
+        while (tt--) {
+            solve();
         }
-			
-        ANS = INT_MAX;    
-        for(int i=0; i<mines; i++)
-            calculateOilMines(i, oilMines, visited, INT_MAX, INT_MIN, 0, 0, ANS);  
-
-		cout << ANS <<endl;		
-	}
-	return 0;
-}
-
-/*
-#include<bits/stdc++.h>
-using namespace std;
-int ans=9999;
-void findMinDiff(int company[],int n)
-{
-    int mini = 9999;
-    int maxi=0;
-    for(int i=0;i<n;i++)
-    {
-        mini = min(mini,company[i]);
-        maxi = max(maxi,company[i]);
     }
-    if(ans>(maxi-mini))
-        ans = maxi-mini;
+    return 0;
 }
-void findAns(int end,int curr,int oil[],int company[],int m,int n,int num)
-{
-    if((curr+1)%m==end)
-    {
-        for(int j = num;j<n;j++)
-        {
-            company[j]+=oil[curr];
-            findMinDiff(company,n);
-            company[j]-=oil[curr];
-        }
-        return;
-    }
-    if(num==n)
-        return;
-    company[num]+=oil[curr];
-    findAns(end,(curr+1)%m,oil,company,m,n,num);
-    company[num]-=oil[curr];
-    findAns(end,curr,oil,company,m,n,num+1);
-}
-int main()
-{
-    int t;
-    cin>>t;
-    while(t--)
-    {
-        ans=9999;
-        int n,m;
-        cin>>n>>m;
-        int oil[m];
-        for(int i=0;i<m;i++)
-            cin>>oil[i];
-        int company[n];
-        for(int i=0;i<n;i++)
-        {
-            company[i]=0;
-        }
-        for(int i=0;i<m;i++)
-        {
-            findAns(i,i,oil,company,m,n,0);
-        }
-        cout<<ans<<endl;
-    }
-}
-*/
