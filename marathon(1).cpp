@@ -30,6 +30,90 @@ Output: #1 153 20
 */
 
 #include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// A large enough number to represent infinity (unreachable states)
+const int INF = 1e9; 
+
+struct Pace {
+    int time_sec;
+    int energy;
+};
+
+void solve(int test_case) {
+    int D, H;
+    cin >> D >> H;
+    
+    vector<Pace> paces(5);
+    for (int i = 0; i < 5; ++i) {
+        int m, s, e;
+        cin >> m >> s >> e;
+        paces[i] = {m * 60 + s, e}; 
+    }
+
+    // 2D DP Table: dp[distance][energy]
+    // dp[d][h] stores the minimum time to run 'd' kilometers using exactly 'h' energy.
+    // We create a grid of size (D + 1) rows and (H + 1) columns.
+    vector<vector<int>> dp(D + 1, vector<int>(H + 1, INF));
+    
+    // Base case: 0 km distance using 0 energy takes 0 seconds.
+    dp[0][0] = 0; 
+
+    // Iterate through each kilometer from 1 to D
+    for (int d = 1; d <= D; ++d) {
+        
+        // Iterate through all possible energy levels we could have used up to the PREVIOUS kilometer
+        for (int h = 0; h <= H; ++h) {
+            
+            // If it was actually possible to reach the previous kilometer with 'h' energy
+            if (dp[d - 1][h] != INF) { 
+                
+                // Try running the current kilometer using each of the 5 paces
+                for (const auto& p : paces) {
+                    
+                    // Check if taking this pace keeps us within our total energy limit H
+                    if (h + p.energy <= H) {
+                        
+                        // Calculate the new total energy
+                        int new_energy = h + p.energy;
+                        
+                        // The time to reach distance 'd' with this new energy is either:
+                        // 1. The time we already calculated for this state (if any)
+                        // 2. The time from the previous state + the time this new pace takes
+                        dp[d][new_energy] = min(dp[d][new_energy], dp[d - 1][h] + p.time_sec);
+                    }
+                }
+            }
+        }
+    }
+
+    // Find the minimum time across all possible energy expenditures for the FINAL distance D
+    int min_time = INF;
+    for (int h = 0; h <= H; ++h) {
+        min_time = min(min_time, dp[D][h]);
+    }
+
+    // Convert back to minutes and seconds
+    cout << "#" << test_case << " " << min_time / 60 << " " << min_time % 60 << "\n";
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int T;
+    if (cin >> T) {
+        for (int i = 1; i <= T; ++i) {
+            solve(i);
+        }
+    }
+    return 0;
+}
+
+#include <iostream>
 using namespace std;
 
 class Pace
