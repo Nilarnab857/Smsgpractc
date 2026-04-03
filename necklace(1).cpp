@@ -14,6 +14,67 @@ Ex:
 3 RBBBBB, ans: 6
 */
 
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void solve(){
+    string s;
+    cin >> s;
+    int n = s.size() / 2;
+    
+    string left_half = s.substr(0, n);
+    string right_half = s.substr(n, n);
+    
+    // 1. Initialize to -1 so we know which balances are actually unreachable
+    vector<int> balances(2 * n + 1, -1);
+    
+    // 2. Base case: a prefix of length 0 has a balance of 0
+    balances[n] = 0; 
+    
+    int running = 0;
+    for(int i = 0; i < right_half.size(); i++){
+        running += ((right_half[i] == 'R') ? 1 : -1);
+        balances[running + n] = i + 1;
+    }
+    
+    int ans = 0;
+    
+    // 3. Handle the case where the left suffix is empty (length 0)
+    if (balances[n] != -1) {
+        ans = max(ans, balances[n]);
+    }
+   
+    running = 0;
+    for(int i = left_half.size() - 1; i >= 0; i--){
+        running += ((left_half[i] == 'R') ? 1 : -1);
+        
+        // Only update if the required balance actually exists in the right half
+        if (balances[n - running] != -1) {
+            ans = max(ans, (n - i) + balances[n - running]);
+        }
+    }
+    
+    // 4. Print minimum removed (total beads minus max kept)
+    cout << (2 * n) - ans << "\n";
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int tt;
+    if (cin >> tt) {
+        while(tt--){
+            solve();
+        }
+    }
+    return 0;
+}
+
 #include <iostream>
 #include <unordered_map>
 #include <string>
